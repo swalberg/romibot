@@ -64,14 +64,15 @@ public class Drivetrain extends SubsystemBase {
   }
 
   public void arcadeDrive(double xaxisSpeed, double zaxisRotate) {
+    /*
     if (zaxisRotate == 0) {
       m_diffDrive.arcadeDrive(xaxisSpeed, zaxisRotate);
       double output = pid.calculate(m_accelerometer.getZ(), 0);
       SmartDashboard.putNumber("straightpid", output);
-      //m_diffDrive.arcadeDrive(xaxisSpeed, pid.calculate(m_accelerometer.getZ(), 0));
-    } else {
+      m_diffDrive.arcadeDrive(xaxisSpeed, pid.calculate(m_accelerometer.getZ(), 0));
+    } else { */
       m_diffDrive.arcadeDrive(xaxisSpeed, zaxisRotate);
-    }
+    //}
   }
 
   public void resetEncoders() {
@@ -103,6 +104,10 @@ public class Drivetrain extends SubsystemBase {
     return m_rightEncoder.getRate();
   }
 
+  /**
+   * Calculates the distance driven, in meters, using the average of both wheels
+   * @return distance, in meters
+   */
   public double getAverageDistanceMeter() {
     return (getLeftDistanceMeter() + getRightDistanceMeter()) / 2.0;
   }

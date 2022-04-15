@@ -10,6 +10,7 @@ import edu.wpi.first.wpilibj.XboxController;
 import frc.robot.commands.ArcadeDrive;
 import frc.robot.commands.AutonomousDistance;
 import frc.robot.commands.AutonomousTwoBall;
+import frc.robot.commands.DriveDistance;
 import frc.robot.commands.LidarWideScan;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.LidarCloud;
@@ -29,7 +30,7 @@ import edu.wpi.first.wpilibj2.command.button.Button;
  */
 public class RobotContainer {
   // The robot's subsystems and commands are defined here...
-  private final Drivetrain m_drivetrain = new Drivetrain();
+  private final Drivetrain drivetrain = new Drivetrain();
   private final OnBoardIO m_onboardIO = new OnBoardIO(ChannelMode.INPUT, ChannelMode.INPUT);
   private final LidarCloud lidarCloud = new LidarCloud();
 
@@ -65,7 +66,7 @@ public class RobotContainer {
   private void configureButtonBindings() {
     // Default command is arcade drive. This will run unless another command
     // is scheduled over it.
-    m_drivetrain.setDefaultCommand(getArcadeDriveCommand());
+    drivetrain.setDefaultCommand(getArcadeDriveCommand());
     // lidarCloud.setDefaultCommand(new LidarWideScan(lidarCloud));
 
     // Example of how to use the onboard IO
@@ -75,8 +76,9 @@ public class RobotContainer {
         .whenInactive(new PrintCommand("Button A Released"));
 
     // Setup SmartDashboard options
-    m_chooser.setDefaultOption("Auto Routine Distance", new AutonomousDistance(m_drivetrain));
-    m_chooser.addOption("TwoBallAuto", new AutonomousTwoBall(m_drivetrain));
+    m_chooser.setDefaultOption("Auto Routine Distance", new AutonomousDistance(drivetrain));
+    m_chooser.addOption("TwoBallAuto", new AutonomousTwoBall(drivetrain));
+    m_chooser.addOption("Motion Profile", new DriveDistance(3.0, drivetrain));
     SmartDashboard.putData(m_chooser);
   }
 
@@ -96,6 +98,6 @@ public class RobotContainer {
    */
   public Command getArcadeDriveCommand() {
     return new ArcadeDrive(
-        m_drivetrain, () -> -m_controller.getRawAxis(1), () -> m_controller.getRawAxis(2));
+        drivetrain, () -> -m_controller.getRawAxis(1), () -> m_controller.getRawAxis(2));
   }
 }

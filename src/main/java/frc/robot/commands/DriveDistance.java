@@ -4,18 +4,22 @@
 
 package frc.robot.commands;
 
-import frc.robot.Constants;
-import frc.robot.subsystems.Drivetrain;
-import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.ProfiledPIDController;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
+import frc.robot.Constants;
+import frc.robot.subsystems.Drivetrain;
 
 public class DriveDistance extends CommandBase {
   private static final double MAX_SPEED = 0.7;
   double meters;
   Drivetrain drive;
-  private final PIDController pid = new PIDController(Constants.kGainsDistance.kP, Constants.kGainsDistance.kI, Constants.kGainsDistance.kD);
+  private final ProfiledPIDController pid = new ProfiledPIDController(Constants.kGainsDistance.kP,
+   Constants.kGainsDistance.kI,
+    Constants.kGainsDistance.kD,
+    new TrapezoidProfile.Constraints(100.0, 200.0),
+    0.02);
 
   /**
    * Creates a new DriveDistance. This command will drive your your robot for a desired distance at
@@ -34,7 +38,6 @@ public class DriveDistance extends CommandBase {
   @Override
   public void initialize() {
     pid.setTolerance(0.1, 0.05);
-    pid.setSetpoint(meters);
     drive.arcadeDrive(0, 0);
     drive.resetEncoders();
   }
@@ -46,12 +49,16 @@ public class DriveDistance extends CommandBase {
 
   @Override
   public void execute() {
-    double output = MathUtil.clamp(pid.calculate(drive.getAverageDistanceMeter()), -MAX_SPEED, MAX_SPEED);
+    //double output = MathUtil.clamp(pid.calculate(drive.getAverageDistanceMeter()), -MAX_SPEED, MAX_SPEED);
+    double output = pid.calculate(drive.getAverageDistanceMeter(), meters);
+    SmartDashboard.putNumber("ErrorD", pid.getPositionError());
+    SmartDashboard.putNumber("ErrorV", pid.getVelocityError());
+    SmartDashboard.putNumber("ProfileOutput", output);
     drive.arcadeDrive(output, 0);
   }
 
   @Override
   public boolean isFinished() {
-    return pid.atSetpoint();
+    return pid.atGoal();
   }
 }

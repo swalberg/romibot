@@ -9,12 +9,12 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.Constants;
-import frc.robot.subsystems.Drivetrain;
+import frc.robot.subsystems.DriveTrain;
 
 public class DriveDistance extends CommandBase {
   private static final double MAX_SPEED = 0.7;
   double meters;
-  Drivetrain drive;
+  DriveTrain drive;
   private final ProfiledPIDController pid = new ProfiledPIDController(Constants.kGainsDistance.kP,
    Constants.kGainsDistance.kI,
     Constants.kGainsDistance.kD,
@@ -28,7 +28,7 @@ public class DriveDistance extends CommandBase {
    * @param meters The number of meters the robot will drive
    * @param drive The drivetrain subsystem on which this command will run
    */
-  public DriveDistance(double meters, Drivetrain drive) {
+  public DriveDistance(double meters, DriveTrain drive) {
     this.meters = meters;
     this.drive = drive;
     addRequirements(drive);

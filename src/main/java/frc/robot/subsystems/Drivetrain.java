@@ -21,7 +21,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.sensors.RomiGyro;
 
-public class Drivetrain extends SubsystemBase {
+public class DriveTrain extends SubsystemBase {
   private static final double kCountsPerRevolution = 1440.0;
   private static final double kWheelDiameterMeter = 70.0 / 1000.0; // 70 mm
   private static final double kTrackWidth = 141.0 / 1000.0;
@@ -51,7 +51,7 @@ public class Drivetrain extends SubsystemBase {
   private Rotation2d gyroAngle = new Rotation2d();
   DifferentialDriveKinematics kinematics = new DifferentialDriveKinematics(kTrackWidth);
   /** Creates a new Drivetrain. */
-  public Drivetrain() {
+  public DriveTrain() {
     // We need to invert one side of the drivetrain so that positive voltages
     // result in both sides moving forward. Depending on how your robot's
     // gearbox is constructed, you might have to invert the left side instead.

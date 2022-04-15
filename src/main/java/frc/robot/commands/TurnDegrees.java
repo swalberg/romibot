@@ -8,11 +8,11 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.Constants;
-import frc.robot.subsystems.Drivetrain;
+import frc.robot.subsystems.DriveTrain;
 
 public class TurnDegrees extends CommandBase {
   private static final double MAX_SPEED = 0.5;
-  private final Drivetrain m_drive;
+  private final DriveTrain m_drive;
   private final double m_degrees;
   private final PIDController pid = new PIDController(Constants.kGainsDistance.kP, Constants.kGainsDistance.kI, Constants.kGainsDistance.kD);
 
@@ -24,7 +24,7 @@ public class TurnDegrees extends CommandBase {
    * @param degrees Degrees to turn. Leverages encoders to compare distance.
    * @param drive The drive subsystem on which this command will run
    */
-  public TurnDegrees(double degrees, Drivetrain drive) {
+  public TurnDegrees(double degrees, DriveTrain drive) {
     m_degrees = degrees;
     m_drive = drive;
     pid.setTolerance(0.1, 0.1);

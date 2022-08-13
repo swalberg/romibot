@@ -37,5 +37,5 @@ public final class Constants {
 
     //                                                   P     I     D    F
     public final static Gains kGainsDistance = new Gains(0.35, 0.05, 0.05, 0.0, 0, 0.0);
-    public final static Gains kGainsVelocity = new Gains(1.35, 0.05, 0.05, 0.0, 0, 0.0);
+    public final static Gains kGainsVelocity = new Gains(3.35, 0.05, 0.05, 0.0, 0, 0.0);
 }

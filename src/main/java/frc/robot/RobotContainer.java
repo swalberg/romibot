@@ -81,11 +81,11 @@ public class RobotContainer {
         .whenInactive(new PrintCommand("Button A Released"));
 
     // Setup SmartDashboard options
-    m_chooser.setDefaultOption("Auto Routine Distance", new AutonomousDistance(driveTrain));
+    m_chooser.addOption("Auto Routine Distance", new AutonomousDistance(driveTrain));
     m_chooser.addOption("Follow Ball", new AutonomousFollowLight(driveTrain, camera));
     m_chooser.addOption("TwoBallAuto", new AutonomousTwoBall(driveTrain));
     m_chooser.addOption("Motion Profile", new DriveDistance(3.0, driveTrain));
-    m_chooser.addOption("New Trajectory", AutonomousTrajectory.build(driveTrain));
+    m_chooser.setDefaultOption("New Trajectory", AutonomousTrajectory.build(driveTrain));
 
     SmartDashboard.putData(m_chooser);
   }

@@ -23,7 +23,7 @@ public class FollowTrajectory extends CommandBase {
   /** Creates a new FollowTrajectory. */
   PIDController leftPid, rightPid;
 
-  LTVUnicycleController l;
+  LTVUnicycleController controller;
   DriveTrain driveTrain;
   Trajectory trajectory;
 
@@ -34,7 +34,7 @@ public class FollowTrajectory extends CommandBase {
     addRequirements(d);
     driveTrain = d;
     trajectory = t;
-    l = new LTVUnicycleController(DT);
+    controller = new LTVUnicycleController(DT);
     leftPid = new PIDController(Constants.kGainsVelocity.kP, 0, 0);
     rightPid = new PIDController(Constants.kGainsVelocity.kP, 0, 0);
   }
@@ -44,26 +44,37 @@ public class FollowTrajectory extends CommandBase {
   public void initialize() {
     time.reset();
     time.start();
-    double d = trajectory.getTotalTimeSeconds();
-    System.out.printf("Trajectory is %f\n", d);
   }
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
+    // What state should we be at, at this point in the trajectory?
     State s = trajectory.sample(time.get());
     SmartDashboard.putString("State", s.toString());
 
-    ChassisSpeeds c = l.calculate(driveTrain.getPose(), s);
+    // Use the controller to calculate what we need to hit to be on our trajectory
+    ChassisSpeeds c = controller.calculate(driveTrain.getPose(), s);
+
+    // Convert the chassis FoR to the actual wheel speeds
     DifferentialDriveWheelSpeeds speeds = DriveConstants.kDriveKinematics.toWheelSpeeds(c);
 
-    driveTrain.tankDriveVolts(leftPid.calculate(driveTrain.getLeftVelocity(), speeds.leftMetersPerSecond),
-        rightPid.calculate(driveTrain.getRightVelocity(), speeds.rightMetersPerSecond));
+    // Given the speeds, set the PIDs up to follow that
+    leftPid.setSetpoint(speeds.leftMetersPerSecond);
+    rightPid.setSetpoint(speeds.rightMetersPerSecond);
 
+    // Driving by volts, using the PIDs independently on each wheel
+    driveTrain.tankDriveVolts(leftPid.calculate(driveTrain.getLeftVelocity()),
+                              rightPid.calculate(driveTrain.getRightVelocity()));
+
+    SmartDashboard.putNumber("stateVelocity", s.velocityMetersPerSecond);
+    SmartDashboard.putString("statePose", s.poseMeters.toString());
     SmartDashboard.putNumber("leftPIDerror", leftPid.getPositionError());
     SmartDashboard.putNumber("leftPIDsetpoint", speeds.leftMetersPerSecond);
+    SmartDashboard.putNumber("leftActual", driveTrain.getLeftVelocity());
     SmartDashboard.putNumber("rightPIDerror", rightPid.getPositionError());
     SmartDashboard.putNumber("rightPIDsetpoint", speeds.rightMetersPerSecond);
+    SmartDashboard.putNumber("rightActual", driveTrain.getRightVelocity());
   }
 
   // Called once the command ends or is interrupted.
@@ -75,6 +86,7 @@ public class FollowTrajectory extends CommandBase {
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
+    // Trajectories are done when their time runs out, not when you hit the destination
     return time.get() >= trajectory.getTotalTimeSeconds();
   }
 }

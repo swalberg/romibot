@@ -20,7 +20,7 @@ import edu.wpi.first.wpilibj2.command.PrintCommand;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.subsystems.DriveTrain;
 
-public class AutonomousTrajectory extends CommandBase {
+public class AutonomousTrajectory {
   public static Command build(DriveTrain driveTrain) {
         // Create a voltage constraint to ensure we don't accelerate too fast
         var autoVoltageConstraint =
@@ -34,11 +34,11 @@ public class AutonomousTrajectory extends CommandBase {
 
     // Create config for trajectory
     TrajectoryConfig config =
-        new TrajectoryConfig(2, 0.3)
+        new TrajectoryConfig(0.5, 0.2)
             // Add kinematics to ensure max speed is actually obeyed
-            .setKinematics(DriveConstants.kDriveKinematics);
-            /* // Apply the voltage constraint
-            .addConstraint(autoVoltageConstraint); */
+            .setKinematics(DriveConstants.kDriveKinematics)
+            // Apply the voltage constraint
+            .addConstraint(autoVoltageConstraint);
 
     // An example trajectory to follow.  All units in meters.
     Trajectory exampleTrajectory =
@@ -50,7 +50,7 @@ public class AutonomousTrajectory extends CommandBase {
             List.of(new Translation2d(0.2, 0.0)),
             // End 3 meters straight ahead of where we started, facing forward
             //new Pose2d(3, 0, new Rotation2d(0)),
-            new Pose2d(1, 0, new Rotation2d(0)),
+            new Pose2d(2, 0, new Rotation2d(0)),
             // Pass config
             config);
 
@@ -63,21 +63,4 @@ public class AutonomousTrajectory extends CommandBase {
       .andThen(() -> driveTrain.tankDriveVolts(0, 0));
   }
 
-  // Called when the command is initially scheduled.
-  @Override
-  public void initialize() {}
-
-  // Called every time the scheduler runs while the command is scheduled.
-  @Override
-  public void execute() {}
-
-  // Called once the command ends or is interrupted.
-  @Override
-  public void end(boolean interrupted) {}
-
-  // Returns true when the command should end.
-  @Override
-  public boolean isFinished() {
-    return false;
-  }
 }

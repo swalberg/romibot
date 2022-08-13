@@ -7,18 +7,15 @@ package frc.robot.subsystems;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.DifferentialDriveKinematics;
 import edu.wpi.first.math.kinematics.DifferentialDriveOdometry;
-import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.BuiltInAccelerometer;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.motorcontrol.Spark;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants;
 import frc.robot.sensors.RomiGyro;
 
 public class DriveTrain extends SubsystemBase {
@@ -48,6 +45,8 @@ public class DriveTrain extends SubsystemBase {
   private final BuiltInAccelerometer m_accelerometer = new BuiltInAccelerometer();
 
   private Pose2d m_pose;
+  private final Field2d m_field = new Field2d();
+
 
   private Rotation2d gyroAngle = new Rotation2d();
   DifferentialDriveKinematics kinematics = new DifferentialDriveKinematics(kTrackWidth);
@@ -62,6 +61,8 @@ public class DriveTrain extends SubsystemBase {
     m_leftEncoder.setDistancePerPulse((Math.PI * kWheelDiameterMeter) / kCountsPerRevolution);
     m_rightEncoder.setDistancePerPulse((Math.PI * kWheelDiameterMeter) / kCountsPerRevolution);
     resetEncoders();
+    SmartDashboard.putData("Field", m_field);
+
   }
 
   public void arcadeDrive(double xaxisSpeed, double zaxisRotate) {
@@ -179,16 +180,12 @@ public class DriveTrain extends SubsystemBase {
   @Override
   public void periodic() {
 
-    DifferentialDriveWheelSpeeds wheelSpeeds = new DifferentialDriveWheelSpeeds(getLeftVelocity(), getRightVelocity());
-    ChassisSpeeds chassisSpeeds = kinematics.toChassisSpeeds(wheelSpeeds);
-    //SmartDashboard.putNumber("TurnRate", chassisSpeeds.omegaRadiansPerSecond);
-
-    gyroAngle = gyroAngle.plus(new Rotation2d(chassisSpeeds.omegaRadiansPerSecond / 50.0)); // 50 time slices per second
-    //SmartDashboard.putNumber("AngleKinematics", gyroAngle.getDegrees());
-    //SmartDashboard.putString("AngleGyro", getAngle().toString());
-    
     m_pose = m_odometry.update(getAngle(), m_leftEncoder.getDistance(), m_rightEncoder.getDistance());
-    SmartDashboard.putString("Pose", m_pose.toString());
+
+    m_field.setRobotPose(m_pose);
+    SmartDashboard.putString("Pose", getPose().toString());
+    SmartDashboard.putNumber("LeftDistance", getLeftDistanceMeter());
+    SmartDashboard.putNumber("RightDistance", getRightDistanceMeter());
   }
 
   /** Returns the pose of the robot */

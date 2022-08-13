@@ -21,6 +21,21 @@ public final class Constants {
     public final class DriveTrain {
     }
 
+    public static final class DriveConstants {
+        public static final double ksVolts = 0.929;
+        public static final double kvVoltSecondsPerMeter = 6.33;
+        public static final double kaVoltSecondsSquaredPerMeter = 0.0389;
+    
+        public static final double kPDriveVel = 1.0;
+        public static final double kIDriveVel = 0.0;
+        public static final double kDDriveVel = 0.0;
+    
+        public static final double kTrackwidthMeters = 0.142072613;
+        public static final DifferentialDriveKinematics kDriveKinematics = new DifferentialDriveKinematics(
+            kTrackwidthMeters);
+      }
+
     //                                                   P     I     D    F
     public final static Gains kGainsDistance = new Gains(0.35, 0.05, 0.05, 0.0, 0, 0.0);
+    public final static Gains kGainsVelocity = new Gains(1.35, 0.05, 0.05, 0.0, 0, 0.0);
 }

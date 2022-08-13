@@ -48,6 +48,7 @@ public class DriveTrain extends SubsystemBase {
   private final BuiltInAccelerometer m_accelerometer = new BuiltInAccelerometer();
 
   private Pose2d m_pose;
+
   private Rotation2d gyroAngle = new Rotation2d();
   DifferentialDriveKinematics kinematics = new DifferentialDriveKinematics(kTrackWidth);
   /** Creates a new Drivetrain. */
@@ -180,13 +181,30 @@ public class DriveTrain extends SubsystemBase {
 
     DifferentialDriveWheelSpeeds wheelSpeeds = new DifferentialDriveWheelSpeeds(getLeftVelocity(), getRightVelocity());
     ChassisSpeeds chassisSpeeds = kinematics.toChassisSpeeds(wheelSpeeds);
-    SmartDashboard.putNumber("TurnRate", chassisSpeeds.omegaRadiansPerSecond);
+    //SmartDashboard.putNumber("TurnRate", chassisSpeeds.omegaRadiansPerSecond);
 
     gyroAngle = gyroAngle.plus(new Rotation2d(chassisSpeeds.omegaRadiansPerSecond / 50.0)); // 50 time slices per second
-    SmartDashboard.putNumber("AngleKinematics", gyroAngle.getDegrees());
-    SmartDashboard.putString("AngleGyro", getAngle().toString());
+    //SmartDashboard.putNumber("AngleKinematics", gyroAngle.getDegrees());
+    //SmartDashboard.putString("AngleGyro", getAngle().toString());
     
     m_pose = m_odometry.update(getAngle(), m_leftEncoder.getDistance(), m_rightEncoder.getDistance());
     SmartDashboard.putString("Pose", m_pose.toString());
+  }
+
+  /** Returns the pose of the robot */
+  public Pose2d getPose() {
+    return m_pose;
+  }
+
+  public void setPose(Pose2d pose) {
+    m_pose = pose;
+  }
+
+  /** For auto - drives the controllers at a given voltage */
+  public void tankDriveVolts(double leftVolts, double rightVolts) {
+    SmartDashboard.putNumber("LeftVolts", leftVolts);
+    SmartDashboard.putNumber("RightVolts", rightVolts);
+    m_leftMotor.setVoltage(leftVolts);
+    m_rightMotor.setVoltage(rightVolts);
   }
 }

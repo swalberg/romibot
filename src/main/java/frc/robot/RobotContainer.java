@@ -10,6 +10,7 @@ import edu.wpi.first.wpilibj.XboxController;
 import frc.robot.commands.ArcadeDrive;
 import frc.robot.commands.AutonomousDistance;
 import frc.robot.commands.AutonomousFollowLight;
+import frc.robot.commands.AutonomousTrajectory;
 import frc.robot.commands.AutonomousTwoBall;
 import frc.robot.commands.DriveDistance;
 import frc.robot.commands.LidarWideScan;
@@ -84,6 +85,8 @@ public class RobotContainer {
     m_chooser.addOption("Follow Ball", new AutonomousFollowLight(driveTrain, camera));
     m_chooser.addOption("TwoBallAuto", new AutonomousTwoBall(driveTrain));
     m_chooser.addOption("Motion Profile", new DriveDistance(3.0, driveTrain));
+    m_chooser.addOption("New Trajectory", AutonomousTrajectory.build(driveTrain));
+
     SmartDashboard.putData(m_chooser);
   }
 

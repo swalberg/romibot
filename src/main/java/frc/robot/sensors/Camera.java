@@ -36,7 +36,7 @@ public class Camera extends SubsystemBase {
 
     @Override
     public void periodic() {
-        SmartDashboard.putBoolean("HasTargets", camera.getLatestResult().hasTargets());
-        SmartDashboard.putNumber("AngleToTarget", angleToTarget());
+        //SmartDashboard.putBoolean("HasTargets", camera.getLatestResult().hasTargets());
+        //SmartDashboard.putNumber("AngleToTarget", angleToTarget());
     }
 }

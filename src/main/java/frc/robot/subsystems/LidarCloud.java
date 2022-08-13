@@ -36,8 +36,8 @@ public class LidarCloud extends SubsystemBase {
   public void periodic() {
     if (timer.advanceIfElapsed(SCAN_PERIOD)) {
     swivel.setAngle(currentAngle);
-      SmartDashboard.putNumber("Lidar-prox", distance.getProximity());
-      SmartDashboard.putNumber("Lidar-heading", currentAngle);
+      //SmartDashboard.putNumber("Lidar-prox", distance.getProximity());
+      //SmartDashboard.putNumber("Lidar-heading", currentAngle);
     }
   }
 }

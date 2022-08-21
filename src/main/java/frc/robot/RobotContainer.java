@@ -23,6 +23,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.PrintCommand;
+import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.button.Button;
 
 /**
@@ -84,6 +85,7 @@ public class RobotContainer {
     m_chooser.addOption("Auto Routine Distance", new AutonomousDistance(driveTrain));
     m_chooser.addOption("Follow Ball", new AutonomousFollowLight(driveTrain, camera));
     m_chooser.addOption("TwoBallAuto", new AutonomousTwoBall(driveTrain));
+    m_chooser.addOption("Go Fast", new RunCommand(() -> driveTrain.arcadeDrive(1, 0)).withTimeout(10));
     m_chooser.addOption("Motion Profile", new DriveDistance(3.0, driveTrain));
     m_chooser.setDefaultOption("New Trajectory", AutonomousTrajectory.build(driveTrain));
 

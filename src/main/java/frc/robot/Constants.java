@@ -33,9 +33,11 @@ public final class Constants {
         public static final double kTrackwidthMeters = 0.142072613;
         public static final DifferentialDriveKinematics kDriveKinematics = new DifferentialDriveKinematics(
             kTrackwidthMeters);
+
+        public static final double maxVelocityMetersPerSecond = 0.6;
       }
 
     //                                                   P     I     D    F
     public final static Gains kGainsDistance = new Gains(0.35, 0.05, 0.05, 0.0, 0, 0.0);
-    public final static Gains kGainsVelocity = new Gains(3.35, 0.05, 0.05, 0.0, 0, 0.0);
+    public final static Gains kGainsVelocity = new Gains(1.0, 0.05, 0.05, 0.0, 0, 0.0);
 }

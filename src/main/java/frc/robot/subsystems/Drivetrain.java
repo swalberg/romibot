@@ -186,6 +186,8 @@ public class DriveTrain extends SubsystemBase {
     SmartDashboard.putString("Pose", getPose().toString());
     SmartDashboard.putNumber("LeftDistance", getLeftDistanceMeter());
     SmartDashboard.putNumber("RightDistance", getRightDistanceMeter());
+    SmartDashboard.putNumber("LeftVelocity", getLeftVelocity());
+    SmartDashboard.putNumber("RightVelocity", getRightVelocity());
   }
 
   /** Returns the pose of the robot */

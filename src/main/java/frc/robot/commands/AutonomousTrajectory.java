@@ -15,7 +15,6 @@ import edu.wpi.first.math.trajectory.TrajectoryConfig;
 import edu.wpi.first.math.trajectory.TrajectoryGenerator;
 import edu.wpi.first.math.trajectory.constraint.DifferentialDriveVoltageConstraint;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.PrintCommand;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.subsystems.DriveTrain;
@@ -34,33 +33,46 @@ public class AutonomousTrajectory {
 
     // Create config for trajectory
     TrajectoryConfig config =
-        new TrajectoryConfig(0.5, 0.2)
+        new TrajectoryConfig(DriveConstants.maxVelocityMetersPerSecond, 0.3)
             // Add kinematics to ensure max speed is actually obeyed
             .setKinematics(DriveConstants.kDriveKinematics)
             // Apply the voltage constraint
             .addConstraint(autoVoltageConstraint);
 
     // An example trajectory to follow.  All units in meters.
-    Trajectory exampleTrajectory =
+    Trajectory goThere =
         TrajectoryGenerator.generateTrajectory(
             // Start at the origin facing the +X direction
             new Pose2d(0, 0, new Rotation2d(0)),
             // Pass through these two interior waypoints, making an 's' curve path
-            //List.of(new Translation2d(1, 1), new Translation2d(2, -1)),
-            List.of(new Translation2d(0.2, 0.0)),
+            List.of(new Translation2d(1, -0.5), new Translation2d(2, 0.5)),
+            //List.of(new Translation2d(0.2, 0.0)),
             // End 3 meters straight ahead of where we started, facing forward
             //new Pose2d(3, 0, new Rotation2d(0)),
-            new Pose2d(2, 0, new Rotation2d(0)),
+            new Pose2d(3, 0, new Rotation2d(0)),
             // Pass config
             config);
+    Trajectory comeBack =
+        TrajectoryGenerator.generateTrajectory(
+            // Start at the origin facing the +X direction
+            new Pose2d(0, 0, new Rotation2d(0)),
+            // Pass through these two interior waypoints, making an 's' curve path
+            List.of(new Translation2d(1, -0.5), new Translation2d(2, 0.5)),
+            //List.of(new Translation2d(0.2, 0.0)),
+            // End 3 meters straight ahead of where we started, facing forward
+            //new Pose2d(3, 0, new Rotation2d(0)),
+            new Pose2d(3, 0, new Rotation2d(0)),
+            // Pass config
+            config.setReversed(true));
 
     // Reset odometry to the starting pose of the trajectory.
-    driveTrain.setPose(exampleTrajectory.getInitialPose());
+    driveTrain.setPose(goThere.getInitialPose());
 
     // Run path following command, then stop at the end.
-    return new FollowTrajectory(driveTrain, exampleTrajectory)
-      .andThen(new PrintCommand("Done!!!"))
-      .andThen(() -> driveTrain.tankDriveVolts(0, 0));
+    return new FollowTrajectory(driveTrain, goThere).
+      //andThen(new FollowTrajectory(driveTrain, comeBack)).
+      andThen(new PrintCommand("Done!!!")).
+      andThen(() -> driveTrain.tankDriveVolts(0, 0));
   }
 
 }

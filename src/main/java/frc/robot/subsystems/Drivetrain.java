@@ -4,26 +4,34 @@
 
 package frc.robot.subsystems;
 
+import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.SimpleMotorFeedforward;
+import edu.wpi.first.math.estimator.DifferentialDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.kinematics.DifferentialDriveKinematics;
-import edu.wpi.first.math.kinematics.DifferentialDriveOdometry;
-import edu.wpi.first.wpilibj.BuiltInAccelerometer;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Encoder;
-import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.motorcontrol.Spark;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants;
+import frc.robot.Constants.DriveConstants;
 import frc.robot.sensors.RomiGyro;
 
 public class DriveTrain extends SubsystemBase {
   private static final double kCountsPerRevolution = 1440.0;
   private static final double kWheelDiameterMeter = 70.0 / 1000.0; // 70 mm
-  private static final double kTrackWidth = 141.0 / 1000.0;
-  PIDController pid = new PIDController(0.35, 0.05, 0.02);
-  DifferentialDriveOdometry m_odometry = new DifferentialDriveOdometry(new Rotation2d(), new Pose2d(0.0, 0.0, new Rotation2d()));
+
+  private final PIDController leftPID = new PIDController(Constants.kGainsVelocity.kP, Constants.kGainsVelocity.kI,
+      Constants.kGainsVelocity.kD);
+  private final PIDController rightPID = new PIDController(Constants.kGainsVelocity.kP, Constants.kGainsVelocity.kI,
+      Constants.kGainsVelocity.kD);
+  private final SimpleMotorFeedforward m_feedforward = new SimpleMotorFeedforward(1, 3);
 
   // The Romi has the left and right motors set to
   // PWM channels 0 and 1 respectively
@@ -35,21 +43,27 @@ public class DriveTrain extends SubsystemBase {
   private final Encoder m_leftEncoder = new Encoder(4, 5);
   private final Encoder m_rightEncoder = new Encoder(6, 7);
 
-  // Set up the differential drive controller
-  private final DifferentialDrive m_diffDrive = new DifferentialDrive(m_leftMotor, m_rightMotor);
-
   // Set up the RomiGyro
   private final RomiGyro m_gyro = new RomiGyro();
-
-  // Set up the BuiltInAccelerometer
-  private final BuiltInAccelerometer m_accelerometer = new BuiltInAccelerometer();
 
   private Pose2d m_pose;
   private final Field2d m_field = new Field2d();
 
+  /*
+   * Here we use DifferentialDrivePoseEstimator so that we can fuse odometry
+   * readings. The
+   * numbers used below are robot specific, and should be tuned.
+   */
+  private final DifferentialDrivePoseEstimator m_poseEstimator = new DifferentialDrivePoseEstimator(
+      getAngle(),
+      new Pose2d(),
+      VecBuilder.fill(0.05, 0.05, Units.degreesToRadians(5), 0.01, 0.01), // State measurement standard deviations. X,
+                                                                          // Y, theta.
+      VecBuilder.fill(0.02, 0.02, Units.degreesToRadians(1)), // Local measurement standard deviations. Left encoder,
+                                                              // right encoder, gyro.
+      VecBuilder.fill(0.5, 0.5, Units.degreesToRadians(30))); // Vision measurement standard deviations. X, Y, and
+                                                              // theta.
 
-  private Rotation2d gyroAngle = new Rotation2d();
-  DifferentialDriveKinematics kinematics = new DifferentialDriveKinematics(kTrackWidth);
   /** Creates a new Drivetrain. */
   public DriveTrain() {
     // We need to invert one side of the drivetrain so that positive voltages
@@ -65,16 +79,37 @@ public class DriveTrain extends SubsystemBase {
 
   }
 
-  public void arcadeDrive(double xaxisSpeed, double zaxisRotate) {
-    /*
-    if (zaxisRotate == 0) {
-      m_diffDrive.arcadeDrive(xaxisSpeed, zaxisRotate);
-      double output = pid.calculate(m_accelerometer.getZ(), 0);
-      SmartDashboard.putNumber("straightpid", output);
-      m_diffDrive.arcadeDrive(xaxisSpeed, pid.calculate(m_accelerometer.getZ(), 0));
-    } else { */
-      m_diffDrive.arcadeDrive(xaxisSpeed, zaxisRotate);
-    //}
+  /**
+   * Drives the robot at a given speed and rotation rate
+   * 
+   * @param xaxisSpeed  forward/backward speed in m/s
+   * @param zaxisRotate rotation rate in radians/sec
+   */
+  public void arcadeDrive(double xSpeed, double zRotation) {
+    var m_deadband = 0.05;
+    xSpeed = MathUtil.applyDeadband(xSpeed, m_deadband);
+    zRotation = MathUtil.applyDeadband(zRotation, m_deadband);
+    xSpeed = Math.copySign(xSpeed * xSpeed, xSpeed);
+    zRotation = Math.copySign(zRotation * zRotation, zRotation);
+
+
+    var wheelSpeeds = DriveConstants.kDriveKinematics.toWheelSpeeds(new ChassisSpeeds(xSpeed, 0.0, zRotation));
+    setSpeeds(wheelSpeeds);
+  }
+
+  /**
+   * Sets the desired wheel speeds.
+   *
+   * @param speeds The desired wheel speeds.
+   */
+  private void setSpeeds(DifferentialDriveWheelSpeeds speeds) {
+    final double leftFeedforward = m_feedforward.calculate(speeds.leftMetersPerSecond);
+    final double rightFeedforward = m_feedforward.calculate(speeds.rightMetersPerSecond);
+
+    final double leftOutput = leftPID.calculate(m_leftEncoder.getRate(), speeds.leftMetersPerSecond);
+    final double rightOutput = rightPID.calculate(m_rightEncoder.getRate(), speeds.rightMetersPerSecond);
+    m_leftMotor.setVoltage(leftOutput + leftFeedforward);
+    m_rightMotor.setVoltage(rightOutput + rightFeedforward);
   }
 
   public void resetEncoders() {
@@ -108,68 +143,15 @@ public class DriveTrain extends SubsystemBase {
 
   /**
    * Calculates the distance driven, in meters, using the average of both wheels
+   * 
    * @return distance, in meters
    */
   public double getAverageDistanceMeter() {
     return (getLeftDistanceMeter() + getRightDistanceMeter()) / 2.0;
   }
 
-  /**
-   * The acceleration in the X-axis.
-   *
-   * @return The acceleration of the Romi along the X-axis in Gs
-   */
-  public double getAccelX() {
-    return m_accelerometer.getX();
-  }
-
-  /**
-   * The acceleration in the Y-axis.
-   *
-   * @return The acceleration of the Romi along the Y-axis in Gs
-   */
-  public double getAccelY() {
-    return m_accelerometer.getY();
-  }
-
-  /**
-   * The acceleration in the Z-axis.
-   *
-   * @return The acceleration of the Romi along the Z-axis in Gs
-   */
-  public double getAccelZ() {
-    return m_accelerometer.getZ();
-  }
-
-  /**
-   * Current angle of the Romi around the X-axis.
-   *
-   * @return The current angle of the Romi in degrees
-   */
-  public double getGyroAngleX() {
-    return m_gyro.getAngleX();
-  }
-
-  /**
-   * Current angle of the Romi around the Y-axis.
-   *
-   * @return The current angle of the Romi in degrees
-   */
-  public double getGyroAngleY() {
-    return m_gyro.getAngleY();
-  }
-
-  /**
-   * Current angle of the Romi around the Z-axis.
-   *
-   * @return The current angle of the Romi in degrees
-   */
-  public double getGyroAngleZ() {
-    return m_gyro.getAngleZ();
-  }
-
   public Rotation2d getAngle() {
-    return Rotation2d.fromDegrees(- getGyroAngleZ());
+    return Rotation2d.fromDegrees(-m_gyro.getAngleZ());
   }
 
   /** Reset the gyro. */
@@ -180,7 +162,12 @@ public class DriveTrain extends SubsystemBase {
   @Override
   public void periodic() {
 
-    m_pose = m_odometry.update(getAngle(), m_leftEncoder.getDistance(), m_rightEncoder.getDistance());
+    m_pose = m_poseEstimator.update(
+      getAngle(),
+      new DifferentialDriveWheelSpeeds(m_leftEncoder.getRate(), m_rightEncoder.getRate()),
+      m_leftEncoder.getDistance(),
+      m_rightEncoder.getDistance());
+
 
     m_field.setRobotPose(m_pose);
     SmartDashboard.putString("Pose", getPose().toString());

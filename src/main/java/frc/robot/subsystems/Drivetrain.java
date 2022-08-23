@@ -108,8 +108,7 @@ public class DriveTrain extends SubsystemBase {
 
     final double leftOutput = leftPID.calculate(m_leftEncoder.getRate(), speeds.leftMetersPerSecond);
     final double rightOutput = rightPID.calculate(m_rightEncoder.getRate(), speeds.rightMetersPerSecond);
-    m_leftMotor.setVoltage(leftOutput + leftFeedforward);
-    m_rightMotor.setVoltage(rightOutput + rightFeedforward);
+    tankDriveVolts(leftOutput + leftFeedforward, rightOutput + rightFeedforward);
   }
 
   public void resetEncoders() {
